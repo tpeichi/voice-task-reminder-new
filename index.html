@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#123c36" />
+    <meta
+      name="description"
+      content="用文字或語音快速建立待辦提醒，並加入 Google 或 Apple 行事曆。"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='15' fill='%23123c36'/%3E%3Crect x='14' y='17' width='36' height='34' rx='7' fill='%23fff'/%3E%3Cpath d='M14 26h36' stroke='%23f0a04b' stroke-width='5'/%3E%3Cpath d='M23 12v10M41 12v10' stroke='%23fff' stroke-width='5' stroke-linecap='round'/%3E%3Cpath d='m23 39 6 5 12-13' fill='none' stroke='%23123c36' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <title>AI 語音待辦提醒系統</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" role="img">
+            <path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+            <path d="m8 15 2.2 2L16 11.5" />
+          </svg>
+        </div>
+        <div>
+          <p class="eyebrow">VOICE TASK REMINDER</p>
+          <h1>AI 語音待辦提醒系統</h1>
+        </div>
+      </header>
+
+      <section class="composer" aria-labelledby="composer-title">
+        <div class="composer-heading">
+          <div>
+            <p class="step-label">快速新增</p>
+            <h2 id="composer-title">今天要記得什麼？</h2>
+          </div>
+          <span class="storage-note">自動儲存於此裝置</span>
+        </div>
+
+        <form id="task-form" novalidate>
+          <label class="sr-only" for="task-input">待辦事項</label>
+          <div class="input-wrap">
+            <input
+              id="task-input"
+              name="task"
+              type="text"
+              placeholder="請輸入待辦事項"
+              autocomplete="off"
+              enterkeyhint="done"
+              maxlength="180"
+            />
+            <button class="voice-button" id="voice-button" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <rect x="9" y="3" width="6" height="11" rx="3" />
+                <path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" />
+              </svg>
+              <span>語音輸入</span>
+            </button>
+          </div>
+          <p id="speech-message" class="support-message" aria-live="polite"></p>
+          <div id="parse-preview" class="parse-preview" aria-live="polite" hidden></div>
+          <button class="add-button" type="submit">新增任務</button>
+        </form>
+
+        <div class="example-strip" aria-label="輸入範例">
+          <span>試著說</span>
+          <button type="button" data-example="十分鐘後提醒我喝水">十分鐘後提醒我喝水</button>
+          <button type="button" data-example="明早八點提醒我買早餐">明早八點提醒我買早餐</button>
+        </div>
+      </section>
+
+      <div id="task-summary" class="task-summary" aria-live="polite"></div>
+
+      <section class="task-section overdue-section" aria-labelledby="overdue-title">
+        <div class="section-heading">
+          <div class="section-title-wrap">
+            <span class="section-icon overdue-icon" aria-hidden="true">!</span>
+            <h2 id="overdue-title">已到期</h2>
+          </div>
+          <span class="count" id="overdue-count">0</span>
+        </div>
+        <div class="task-list" id="overdue-list"></div>
+      </section>
+
+      <section class="task-section today-section" aria-labelledby="today-title">
+        <div class="section-heading">
+          <div class="section-title-wrap">
+            <span class="section-icon today-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" /></svg>
+            </span>
+            <h2 id="today-title">今日任務</h2>
+          </div>
+          <span class="count" id="today-count">0</span>
+        </div>
+        <div class="task-list" id="today-list"></div>
+      </section>
+
+      <section class="task-section todo-section" aria-labelledby="todo-title">
+        <div class="section-heading">
+          <div class="section-title-wrap">
+            <span class="section-icon todo-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M9 11h6M9 15h6M9 7h6M5 11h.01M5 15h.01M5 7h.01M4 3h16v18H4z" /></svg>
+            </span>
+            <h2 id="todo-title">待辦任務</h2>
+          </div>
+          <span class="count" id="todo-count">0</span>
+        </div>
+        <div class="task-list" id="todo-list"></div>
+      </section>
+
+      <section class="task-section completed-section" aria-labelledby="completed-title">
+        <div class="section-heading">
+          <div class="section-title-wrap">
+            <span class="section-icon completed-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" /></svg>
+            </span>
+            <h2 id="completed-title">已完成</h2>
+          </div>
+          <span class="count" id="completed-count">0</span>
+        </div>
+        <div class="task-list" id="completed-list"></div>
+      </section>
+
+      <footer>提醒資料只會保存在這台裝置的瀏覽器中</footer>
+    </main>
+
+    <template id="task-template">
+      <article class="task-card">
+        <div class="task-main-row">
+          <button class="complete-button" type="button" aria-label="標記完成">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 12 4 4 8-9" /></svg>
+          </button>
+          <div class="task-content">
+            <h3 class="task-name"></h3>
+            <div class="task-time-row">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+              <time class="task-time"></time>
+            </div>
+            <p class="task-original"></p>
+          </div>
+          <button class="delete-button" type="button" aria-label="刪除任務">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5" /></svg>
+          </button>
+        </div>
+        <div class="calendar-actions">
+          <a class="calendar-button google-button" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" /></svg>
+            加入 Google Calendar
+          </a>
+          <button class="calendar-button apple-button" type="button">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3v3M17 3v3M4 9h16M6 5h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" /></svg>
+            加入 Apple 行事曆
+          </button>
+        </div>
+      </article>
+    </template>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="parser.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
